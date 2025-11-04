@@ -20,7 +20,7 @@ export default function Navbar() {
     { name: 'Portfolio', href: '/portfolio' },
     { name: 'Watchlist', href: '/watchlist' },
     { name: 'Analytics', href: '/analytics' },
-    { name: 'Settings', href: '/settings' },
+    // { name: 'Settings', href: '/settings' },
     { name: 'About Us', href: '/about' },
   ];
 

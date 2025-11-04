@@ -1,35 +1,87 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStockStore } from '../store/stockStore';
+import { useAuthStore } from '../store/authStore';
 import { useTheme } from '../contexts/ThemeContext';
 import StockSearchBox from './StockSearchBox';
-import { Stock } from '../types';
-import { appThemes, getLogoGradient } from '../utils/themes';
+import { Stock, WatchlistItem } from '../types';
+import { appThemes } from '../utils/themes';
+import { FaStar, FaTrash } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 
 interface DashboardSidebarProps {
   onStockSelect: (stock: Stock) => void;
 }
 
 export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProps) {
+  const { user } = useAuthStore();
   const { currentTheme } = useTheme();
   const theme = appThemes[currentTheme];
-  const [searchedStocks, setSearchedStocks] = useState<Stock[]>([]);
+  const {
+    watchlist,
+    watchlistLoading,
+    stocks,
+    fetchWatchlist,
+    removeFromWatchlist,
+  } = useStockStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && user?.id) {
+      fetchWatchlist(user.id);
+    }
+  }, [mounted, user, fetchWatchlist]);
 
   const handleStockSearch = (stock: Stock) => {
-    setSearchedStocks(prev => {
-      const exists = prev.find(s => s.id === stock.id);
-      if (exists) return prev;
-      return [stock, ...prev].slice(0, 20);
-    });
     onStockSelect(stock);
   };
 
-  const removeStock = (stockId: number, e: React.MouseEvent) => {
+  const handleRemoveFromWatchlist = async (stockId: string, stockSymbol: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSearchedStocks(prev => prev.filter(s => s.id !== stockId));
+    try {
+      await removeFromWatchlist(stockId);
+      toast.success(`Removed ${stockSymbol} from watchlist`);
+    } catch (error) {
+      toast.error('Failed to remove from watchlist');
+    }
   };
+
+  const handleWatchlistItemClick = (item: WatchlistItem) => {
+    const stock = item.stock || stocks.find(s => s.id === item.stock_id);
+    if (stock) {
+      onStockSelect(stock);
+    }
+  };
+
+  const formatPrice = (price: number | undefined | null): string => {
+    if (price === undefined || price === null) {
+      return '₹0.00';
+    }
+    return `₹${price.toFixed(2)}`;
+  };
+
+  if (!mounted) {
+    return (
+      <div className={`w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
+        <div className={`p-6 border-b ${theme.navBorder} backdrop-blur-sm`}>
+          <Image
+            src="/bearbells-transparent-logo.png"
+            alt="Bearbells Logo"
+            width={120}
+            height={120}
+            priority
+            className="drop-shadow-2xl filter brightness-110"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
@@ -50,64 +102,83 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
         <StockSearchBox onSelect={handleStockSearch} />
       </div>
 
-      {/* Searched Stocks */}
+      {/* Watchlist Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className="px-4 py-3 flex items-center justify-between">
-          <span className={`text-xs ${theme.navTextColor} font-semibold tracking-wider uppercase`}>
-            Recent Searches
-          </span>
+          <div className="flex items-center space-x-2">
+            <FaStar className={`w-4 h-4 ${theme.textAccent}`} />
+            <span className={`text-xs ${theme.navTextColor} font-semibold tracking-wider uppercase`}>
+              My Watchlist
+            </span>
+          </div>
           <span className={`text-xs ${theme.textAccent} font-medium`}>
-            {searchedStocks.length} / 20
+            {watchlist.length}
           </span>
         </div>
         
-        {searchedStocks.length === 0 ? (
+        {watchlistLoading ? (
+          <div className="px-4 py-12 text-center">
+            <div className={`inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${theme.textAccent} mb-4`}></div>
+            <p className={`text-sm ${theme.textSecondary}`}>Loading watchlist...</p>
+          </div>
+        ) : watchlist.length === 0 ? (
           <div className="px-4 py-12 text-center">
             <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${theme.cardBg} mb-4`}>
-              <svg className={`w-8 h-8 ${theme.textSecondary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <FaStar className={`w-8 h-8 ${theme.textSecondary}`} />
             </div>
-            <p className={`text-sm ${theme.textSecondary}`}>Search for stocks to get started</p>
+            <p className={`text-sm ${theme.textSecondary} mb-2`}>No stocks in watchlist</p>
+            <p className={`text-xs ${theme.textSecondary} opacity-75`}>Search and add stocks to track</p>
           </div>
         ) : (
-          <div className="space-y-1 px-2">
-            {searchedStocks.map((stock) => (
-              <button
-                key={stock.id}
-                onClick={() => onStockSelect(stock)}
-                className="w-full group relative overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02]"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-r ${theme.textAccent}/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200`} />
-                <div className={`relative px-4 py-3 ${theme.cardBg} backdrop-blur-sm border ${theme.cardBorder} group-hover:${theme.textAccent}/30 transition-all duration-200`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-bold ${theme.textPrimary} truncate`}>
-                          {stock.symbol}
-                        </span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${theme.textAccent}/20 ${theme.textAccent} border ${theme.textAccent}/30`}>
-                          {stock.sector}
-                        </span>
+          <div className="space-y-1 px-2 pb-4">
+            {watchlist.map((item: WatchlistItem) => {
+              const stock = item.stock || stocks.find(s => s.id === item.stock_id);
+              if (!stock) return null;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleWatchlistItemClick(item)}
+                  className="w-full group relative overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-r ${theme.textAccent}/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200`} />
+                  <div className={`relative px-4 py-3 ${theme.cardBg} backdrop-blur-sm border ${theme.cardBorder} group-hover:border-${theme.textAccent}/30 transition-all duration-200`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className={`text-sm font-bold ${theme.textPrimary} truncate`}>
+                            {stock.symbol}
+                          </span>
+                          {stock.sector && (
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-${theme.textAccent}/10 ${theme.textAccent} border border-${theme.textAccent}/20`}>
+                              {stock.sector}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs ${theme.textSecondary} truncate mb-2`}>
+                          {stock.name}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs ${theme.textSecondary}`}>Price</span>
+                          <span className={`text-sm font-bold ${theme.textPrimary}`}>
+                            {formatPrice(stock.last_price)}
+                          </span>
+                        </div>
                       </div>
-                      <p className={`text-xs ${theme.textSecondary} truncate mt-1`}>
-                        {stock.name}
-                      </p>
+                      
+                      <button
+                        onClick={(e) => handleRemoveFromWatchlist(stock.id.toString(), stock.symbol, e)}
+                        className="ml-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all duration-200"
+                        aria-label="Remove from watchlist"
+                        title="Remove from watchlist"
+                      >
+                        <FaTrash className="w-3 h-3 text-red-400" />
+                      </button>
                     </div>
-                    
-                    <button
-                      onClick={(e) => removeStock(stock.id, e)}
-                      className="ml-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all duration-200"
-                      aria-label="Remove stock"
-                    >
-                      <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

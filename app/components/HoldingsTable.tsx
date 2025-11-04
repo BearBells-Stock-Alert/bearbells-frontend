@@ -8,6 +8,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import ConfirmationModal from './shared/ConfirmationModal';
 import toast from 'react-hot-toast';
 import { appThemes } from '../utils/themes';
+import { FaChartLine } from 'react-icons/fa6';
+import StockReportModal from './stockReportModal';
 
 interface HoldingsTableProps {
   onAddClick: () => void;
@@ -27,11 +29,28 @@ export default function HoldingsTable({ onAddClick }: HoldingsTableProps) {
     itemSymbol: '',
   });
 
+  const [reportModal, setReportModal] = useState<{
+    isOpen: boolean;
+    stockSymbol: string|undefined;
+  }>({
+    isOpen: false,
+    stockSymbol: '',
+  });
+
   const handleDeleteClick = (itemId: any, itemSymbol: string) => {
     setDeleteModal({
       isOpen: true,
       itemId,
       itemSymbol,
+    });
+  };
+
+  const handleReportClick = (stockSymbol: string|undefined) => {
+    console.log("Generate report clicked with symbol",stockSymbol);
+    
+    setReportModal({
+      isOpen: true,
+      stockSymbol,
     });
   };
 
@@ -311,13 +330,22 @@ export default function HoldingsTable({ onAddClick }: HoldingsTableProps) {
                       </span>
                     </td>
                     <td className="text-right py-2 px-3">
-                      <button
-                        onClick={() => handleDeleteClick(item.id, item.stock_symbol)}
-                        className="text-red-600 hover:text-white hover:bg-red-600 transition-all duration-200 p-1.5 rounded hover:shadow-lg transform hover:scale-110 opacity-0 group-hover:opacity-100"
-                        title="Delete holding"
-                      >
-                        <FaTrash className="h-3 w-3" />
-                      </button>
+                      <div className="flex justify-end space-x-1">
+                        <button
+                          onClick={() => handleReportClick(item.stock?.symbol)}
+                          className="text-blue-600 cursor-pointer hover:text-white hover:bg-blue-600 transition-all duration-200 p-1.5 rounded hover:shadow-lg transform hover:scale-110 opacity-0 group-hover:opacity-100"
+                          title="Generate Report"
+                        >
+                          <FaChartLine className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(item.id, item.stock_symbol)}
+                          className="text-red-600 hover:text-white hover:bg-red-600 transition-all duration-200 p-1.5 rounded hover:shadow-lg transform hover:scale-110 opacity-0 group-hover:opacity-100"
+                          title="Delete holding"
+                        >
+                          <FaTrash className="h-3 w-3" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -326,6 +354,13 @@ export default function HoldingsTable({ onAddClick }: HoldingsTableProps) {
           </table>
         </div>
       </div>
+
+       {/* Stock Report Modal */}
+       <StockReportModal
+        isOpen={reportModal.isOpen}
+        onClose={() => setReportModal({ isOpen: false, stockSymbol: '' })}
+        stockSymbol={reportModal.stockSymbol}
+      />
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

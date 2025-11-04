@@ -9,7 +9,8 @@ interface StockState {
   selectedStock: Stock | null;
   loading: boolean;
   error: string | null;
-  
+  watchlist: any[];
+  watchlistLoading: boolean;
   // Actions
   setStocks: (stocks: Stock[]) => void;
   setPortfolio: (portfolio: PortfolioItem[]) => void;
@@ -19,6 +20,10 @@ interface StockState {
   removePortfolioItem: (id: any) => Promise<void>;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  fetchWatchlist: (userId: string) => Promise<void>;
+  addToWatchlist: (stockId: string) => Promise<void>;
+  removeFromWatchlist: (stockId: string) => Promise<void>;
+  isInWatchlist: (stockId: string) => boolean;
   
   // API calls
   fetchStocks: (skip?: number, limit?: number) => Promise<void>;
@@ -26,8 +31,6 @@ interface StockState {
   fetchPortfolio: (userId: any) => Promise<void>;
   addToPortfolio: (portfolioData: any) => Promise<void>;
 }
-
-// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -37,12 +40,28 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor to include auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const useStockStore = create<StockState>((set, get) => ({
   stocks: [],
   portfolio: [],
   selectedStock: null,
   loading: false,
   error: null,
+  watchlist: [],
+  watchlistLoading: false,
 
   setStocks: (stocks) => set({ stocks }),
   setPortfolio: (portfolio) => set({ portfolio }),
@@ -57,8 +76,7 @@ export const useStockStore = create<StockState>((set, get) => ({
         await fetchPortfolio(portfolioData.user_id);
       }
     } catch (error) {
-      console.log("Error in adding portfolio item:",error);
-      
+      console.log("Error in adding portfolio item:", error);
       throw error;
     }
   },
@@ -80,7 +98,7 @@ export const useStockStore = create<StockState>((set, get) => ({
         portfolio: state.portfolio.filter((item) => item.id !== id),
       }));
   
-      const response = await axios.delete(`/api/portfolio`, {
+      const response = await api.delete(`/portfolio`, {
         params: { user_id: user.id, id },
         headers: { Accept: 'application/json' },
       });
@@ -136,7 +154,6 @@ export const useStockStore = create<StockState>((set, get) => ({
       
       // Calculate current values and profit/loss
       const portfolioWithCalculations = data.map((item: PortfolioItem) => {
-        // const currentValue = item.quantity * (item.current_price || 0);
         const currentValue = item.current_value || 0;
         const totalInvestment = item.quantity * item.buying_price;
         const profitLoss = currentValue - totalInvestment;
@@ -169,5 +186,69 @@ export const useStockStore = create<StockState>((set, get) => ({
       set({ error: errorMessage });
       throw new Error(errorMessage);
     }
+  },
+
+  fetchWatchlist: async (userId: string) => {
+    set({ watchlistLoading: true, error: null });
+    try {
+      // No need to pass user_id - backend gets it from JWT token
+      const { data } = await api.get('/watchlist');
+      set({ watchlist: data, watchlistLoading: false });
+    } catch (error) {
+      const errorMessage = axios.isAxiosError(error) 
+        ? error.response?.data?.detail || error.message 
+        : 'Failed to fetch watchlist';
+      set({ error: errorMessage, watchlistLoading: false });
+      throw error;
+    }
+  },
+
+  addToWatchlist: async (stockId: string) => {
+    const { user } = useAuthStore.getState();
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Backend doesn't need user_id - gets it from JWT token
+      const { data } = await api.post('/watchlist', {
+        stock_id: stockId
+      });
+      
+      // Refresh watchlist
+      await get().fetchWatchlist(user.id);
+      return data;
+    } catch (error) {
+      const errorMessage = axios.isAxiosError(error) 
+        ? error.response?.data?.detail || error.message 
+        : 'Failed to add to watchlist';
+      set({ error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  },
+
+  removeFromWatchlist: async (stockId: string) => {
+    const { user } = useAuthStore.getState();
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Pass stock_id as query param to Next.js route
+      // Next.js will then call FastAPI's DELETE /watchlist/{stock_id}
+      await api.delete(`/watchlist`, {
+        params: { stock_id: stockId }
+      });
+      
+      // Refresh watchlist
+      await get().fetchWatchlist(user.id);
+    } catch (error) {
+      const errorMessage = axios.isAxiosError(error) 
+        ? error.response?.data?.detail || error.message 
+        : 'Failed to remove from watchlist';
+      set({ error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  },
+
+  isInWatchlist: (stockId: string) => {
+    const { watchlist } = get();
+    return watchlist.some(item => item.stock_id === stockId || item.stock?.id === stockId);
   },
 }));

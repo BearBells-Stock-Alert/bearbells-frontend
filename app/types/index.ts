@@ -65,3 +65,17 @@ export interface User {
     fetchUser: () => Promise<{ success: boolean; error?: string }>;
   }
 
+  // Add to your types.ts
+export interface WatchlistItem {
+  id: number;
+  user_id: number;
+  stock_id: number;
+  created_at: string;
+  stock?: Stock;
+}
+
+export interface WatchlistCreate {
+  stock_id: number;
+  user_id: number;
+}
+
