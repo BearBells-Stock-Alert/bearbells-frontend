@@ -140,6 +140,8 @@ export default function TelegramIntegration() {
   const [status, setStatus] = useState<TelegramStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const [showCodeInput, setShowCodeInput] = useState(false); // NEW: Control code input visibility
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null); // NEW: For auto-refresh
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -175,6 +177,11 @@ export default function TelegramIntegration() {
       );
       const data = await response.json();
       setStatus(data);
+      
+      // NEW: Automatically show code input if there's pending verification
+      if (data.has_pending_verification && !showCodeInput) {
+        setShowCodeInput(true);
+      }
     } catch (error) {
       console.error("Error fetching Telegram status:", error);
     }
@@ -184,6 +191,23 @@ export default function TelegramIntegration() {
     fetchTelegramStatus();
   }, [user]);
 
+  // NEW: Auto-refresh status when waiting for verification
+  useEffect(() => {
+    if (showCodeInput && !status?.is_verified) {
+      // Poll every 5 seconds for verification status
+      const interval = setInterval(fetchTelegramStatus, 5000);
+      setPollingInterval(interval);
+      
+      // Cleanup interval when component unmounts or verification completes
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    } else if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  }, [showCodeInput, status?.is_verified]);
+
   const startTelegramLinking = async () => {
     if (!user?.id) return;
 
@@ -191,9 +215,16 @@ export default function TelegramIntegration() {
     try {
       showModal(
         "Connect to Telegram",
-        'Please open Telegram and send <code class="px-1 py-0.5 bg-gray-800 text-blue-400 rounded-md font-mono text-sm">/start</code> to <span class="font-semibold text-blue-500">@prithvi_stock_bot</span> to get a verification code.',
+        'Please open Telegram and send <code class="px-1 py-0.5 bg-gray-800 text-blue-400 rounded-md font-mono text-sm">/start</code> to <span class="font-semibold text-blue-500">@prithvi_stock_bot</span> to get a verification code.<br/><br/>After sending /start, come back here to enter the 6-digit code you receive.',
         "info"
       );
+      
+      // NEW: Show the code input immediately after clicking connect
+      setShowCodeInput(true);
+      
+      // NEW: Start polling for verification status
+      fetchTelegramStatus();
+      
     } catch (error) {
       console.error("Error starting Telegram linking:", error);
     } finally {
@@ -219,6 +250,7 @@ export default function TelegramIntegration() {
           "success"
         );
         setVerificationCode("");
+        setShowCodeInput(false);
         fetchTelegramStatus();
       } else {
         showModal(
@@ -304,6 +336,11 @@ export default function TelegramIntegration() {
     }
   };
 
+  // NEW: Manual refresh function
+  const refreshStatus = () => {
+    fetchTelegramStatus();
+  };
+
   if (!user) return null;
 
   return (
@@ -324,13 +361,25 @@ export default function TelegramIntegration() {
             </svg>
             Telegram
           </h3>
-          {status?.is_verified && (
-            <span
-              className={`px-2 py-0.5 ${theme.textAccent} bg-opacity-20 text-xs font-medium rounded-full border ${theme.cardBorder}`}
+          <div className="flex items-center gap-2">
+            {status?.is_verified && (
+              <span
+                className={`px-2 py-0.5 ${theme.textAccent} bg-opacity-20 text-xs font-medium rounded-full border ${theme.cardBorder}`}
+              >
+                Active
+              </span>
+            )}
+            {/* NEW: Refresh button */}
+            <button
+              onClick={refreshStatus}
+              className={`p-1 rounded-lg ${theme.cardBorder} border hover:${theme.buttonHoverGradient} transition-colors`}
+              title="Refresh status"
             >
-              Active
-            </span>
-          )}
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {status ? (
@@ -365,15 +414,28 @@ export default function TelegramIntegration() {
                     {loading ? "Connecting..." : "Connect Telegram"}
                   </button>
 
-                  {status.has_pending_verification && (
+                  {/* CHANGED: Show code input based on showCodeInput state OR pending verification */}
+                  {(showCodeInput || status.has_pending_verification) && (
                     <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className={`text-xs ${theme.textSecondary}`}>
+                          Enter 6-digit code from Telegram:
+                        </label>
+                        {pollingInterval && (
+                          <span className={`text-xs ${theme.textAccent} animate-pulse`}>
+                            🔄 Checking...
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="text"
-                        placeholder="Enter 6-digit code"
+                        placeholder="123456"
                         value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        className={`w-full px-2.5 py-1.5 text-sm border ${theme.cardBorder} rounded-lg focus:outline-none focus:ring-2 ${theme.textAccent} bg-opacity-10 ${theme.textPrimary}`}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                        className={`w-full px-2.5 py-1.5 text-sm border ${theme.cardBorder} rounded-lg focus:outline-none focus:ring-2 ${theme.textAccent} bg-opacity-10 ${theme.textPrimary} text-center font-mono`}
                         maxLength={6}
+                        pattern="[0-9]*"
+                        inputMode="numeric"
                       />
                       <button
                         onClick={verifyCode}
