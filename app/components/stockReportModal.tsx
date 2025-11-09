@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { appThemes } from '../utils/themes';
+import { HtmlReport } from './HTMLReport';
 
 interface StockReport {
   json: {
@@ -24,6 +25,7 @@ interface StockReport {
   };
   text_summary: string;
   ai_summary: string;
+  html_report:any;
 }
 
 interface StockReportModalProps {
@@ -60,6 +62,8 @@ export default function StockReportModal({ isOpen, onClose, stockSymbol }: Stock
       }
       
       const data = await response.json();
+      console.log("Data:",data);
+      
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch report');
@@ -278,6 +282,9 @@ export default function StockReportModal({ isOpen, onClose, stockSymbol }: Stock
                   </div>
                 </div>
               )}
+              {/* {activeTab === "ai" && <HtmlReport html={report.html_report} />} */}
+
+
             </>
           )}
         </div>

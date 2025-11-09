@@ -7,9 +7,10 @@ import { Stock } from '../types';
 
 interface StockSearchBoxProps {
   onSelect: (stock: Stock) => void;
+  textColor?: string;
 }
 
-export default function StockSearchBox({ onSelect }: StockSearchBoxProps) {
+export default function StockSearchBox({ onSelect, textColor }: StockSearchBoxProps) {
   const { searchStocks } = useStockStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Stock[]>([]);
@@ -53,7 +54,9 @@ export default function StockSearchBox({ onSelect }: StockSearchBoxProps) {
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
           placeholder="Search eg: infy, nifty fut, index fund, etc"
-          className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+            textColor || 'text-white'
+          }`}
         />
       </div>
       

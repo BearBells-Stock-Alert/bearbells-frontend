@@ -17,7 +17,7 @@ export default function Navbar() {
   // Define your nav items and their routes
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Portfolio', href: '/portfolio' },
+    // { name: 'Portfolio', href: '/portfolio' },
     { name: 'Watchlist', href: '/watchlist' },
     { name: 'Analytics', href: '/analytics' },
     // { name: 'Settings', href: '/settings' },

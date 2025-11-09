@@ -99,7 +99,10 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
       
       {/* Search Box */}
       <div className="p-4">
-        <StockSearchBox onSelect={handleStockSearch} />
+        <StockSearchBox 
+          onSelect={handleStockSearch} 
+          textColor={currentTheme === "light" ? "text-black" : theme.textPrimary}
+        />
       </div>
 
       {/* Watchlist Section */}

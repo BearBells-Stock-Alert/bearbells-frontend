@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import axios from "axios";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -9,10 +10,10 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/api/users/login-url");
-      const data = await res.json();
-      if (data.login_url) {
-        window.location.href = data.login_url;
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/login-url`);
+      
+      if (response.data.login_url) {
+        window.location.href = response.data.login_url;
       }
     } catch (err) {
       console.error("Login error", err);

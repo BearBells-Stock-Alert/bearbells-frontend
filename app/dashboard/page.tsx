@@ -11,6 +11,8 @@ import AddPortfolioForm from '../components/AddPortfolioForm';
 import ProtectedRoute from '../components/ProtectedRoute';
 import TelegramIntegration from '../components/TelegramIntegration';
 import { appThemes, layoutThemes } from '../utils/themes';
+import toast from 'react-hot-toast';
+import { exportHoldingsToExcel } from '../utils/exportToExcel';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
@@ -21,10 +23,12 @@ export default function Dashboard() {
     error,
     fetchStocks,
     fetchPortfolio,
-    setSelectedStock
+    setSelectedStock,
+    portfolio,
   } = useStockStore();
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     fetchStocks();
@@ -36,6 +40,27 @@ export default function Dashboard() {
   const handleStockSelect = (stock: Stock) => {
     setSelectedStock(stock);
     setShowAddForm(true);
+  };
+  const handleExport = async () => {
+    if (portfolio.length === 0) {
+      toast.error('No holdings to export');
+      return;
+    }
+
+    setExportLoading(true);
+    try {
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `portfolio_holdings_${timestamp}.xlsx`;
+      
+      exportHoldingsToExcel(portfolio, filename);
+      toast.success('Portfolio exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export portfolio');
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   if (loading) {
@@ -70,8 +95,32 @@ export default function Dashboard() {
               </div>
               
               <div className="flex items-center space-x-3">
-                <button className={`px-3 py-1.5 rounded-lg bg-gradient-to-r ${theme.buttonGradient} text-white text-sm font-medium hover:${theme.buttonHoverGradient} transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5`}>
-                  Export Data
+              <button 
+                  onClick={handleExport}
+                  disabled={exportLoading || portfolio.length === 0}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r ${
+                    exportLoading || portfolio.length === 0 
+                      ? 'from-gray-400 to-gray-500 cursor-not-allowed' 
+                      : theme.buttonGradient
+                  } text-white text-sm font-medium hover:${
+                    exportLoading || portfolio.length === 0 
+                      ? 'from-gray-400 to-gray-500' 
+                      : theme.buttonHoverGradient
+                  } transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-lg`}
+                >
+                  {exportLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export Data</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
