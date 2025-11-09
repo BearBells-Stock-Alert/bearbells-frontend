@@ -191,7 +191,7 @@ export default function TelegramIntegration() {
     try {
       showModal(
         "Connect to Telegram",
-        'Please open Telegram and send <code class="px-1 py-0.5 bg-gray-800 text-blue-400 rounded-md font-mono text-sm">/start</code> to <span class="font-semibold text-blue-500">@BearBellsBot</span> to get a verification code.',
+        'Please open Telegram and send <code class="px-1 py-0.5 bg-gray-800 text-blue-400 rounded-md font-mono text-sm">/start</code> to <span class="font-semibold text-blue-500">@prithvi_stock_bot</span> to get a verification code.',
         "info"
       );
     } catch (error) {
