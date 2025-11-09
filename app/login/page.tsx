@@ -10,13 +10,19 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/login-url`);
+      
+      // ADD THESE DEBUG LINES
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/login-url`;
+      console.log("Trying to call:", apiUrl);
+      
+      const response = await axios.get(apiUrl);
       
       if (response.data.login_url) {
         window.location.href = response.data.login_url;
       }
     } catch (err) {
       console.error("Login error", err);
+      console.error("Full error details:", err.response); // Add this
       setLoading(false);
     }
   };
