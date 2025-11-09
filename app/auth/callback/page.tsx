@@ -27,3 +27,6 @@ export default function CallbackPage() {
 
   return <p className="text-center mt-10">Finalizing login...</p>;
 }
+
+// ADD THIS LINE TO FIX THE BUILD ERROR
+export const dynamic = 'force-dynamic';
