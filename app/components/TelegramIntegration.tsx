@@ -44,7 +44,7 @@ export default function TelegramIntegration() {
     try {
       // This will trigger the Telegram bot to send a verification code
       // You might need to call your backend to initiate the process
-      alert('Please open Telegram and send /start to @YourBotName to get a verification code.');
+      alert('Please open Telegram and send /start to @BearBellsBot to get a verification code.');
     } catch (error) {
       console.error('Error starting Telegram linking:', error);
     } finally {
