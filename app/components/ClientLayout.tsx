@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -56,7 +57,7 @@ export default function ClientLayout({
     return (
       <>
         {!hideNavbar && <Navbar />}
-        <main className={`min-h-screen w-full ${!hideNavbar ? 'pt-16' : ''}`}>
+        <main className={`min-h-screen w-full ${!hideNavbar ? 'pt-14 md:pt-16' : ''}`}>
           {children}
         </main>
       </>
@@ -67,7 +68,7 @@ export default function ClientLayout({
     <>
       {!hideNavbar && <Navbar />}
       <main 
-        className={`min-h-screen w-full transition-colors duration-300 ${getBackgroundClass()} ${!hideNavbar ? 'pt-16' : ''}`}
+        className={`min-h-screen w-full transition-colors duration-300 ${getBackgroundClass()} ${!hideNavbar ? 'pt-14 md:pt-16' : ''}`}
       >
         {children}
       </main>

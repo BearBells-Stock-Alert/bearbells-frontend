@@ -20,7 +20,7 @@ export default function LoginPage() {
       if (response.data.login_url) {
         window.location.href = response.data.login_url;
       }
-    } catch (err) {
+    } catch (err:any) {
       console.error("Login error", err);
       console.error("Full error details:", err.response); // Add this
       setLoading(false);

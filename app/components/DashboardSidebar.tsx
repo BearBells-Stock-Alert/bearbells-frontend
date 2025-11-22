@@ -68,15 +68,15 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
 
   if (!mounted) {
     return (
-      <div className={`w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
-        <div className={`p-6 border-b ${theme.navBorder} backdrop-blur-sm`}>
+      <div className={`w-64 md:w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
+        <div className={`p-4 md:p-6 border-b ${theme.navBorder} backdrop-blur-sm`}>
           <Image
             src="/bearbells-transparent-logo.png"
             alt="Bearbells Logo"
-            width={120}
-            height={120}
+            width={100}
+            height={100}
             priority
-            className="drop-shadow-2xl filter brightness-110"
+            className="drop-shadow-2xl filter brightness-110 w-20 md:w-30"
           />
         </div>
       </div>
@@ -84,21 +84,21 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
   }
 
   return (
-    <div className={`w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
+    <div className={`w-64 md:w-80 bg-gradient-to-b ${theme.navGradient} flex flex-col h-screen shadow-2xl`}>
       {/* Logo Section */}
-      <div className={`p-6 border-b ${theme.navBorder} backdrop-blur-sm`}>
+      <div className={`p-4 md:p-6 border-b ${theme.navBorder} backdrop-blur-sm`}>
         <Image
           src="/bearbells-transparent-logo.png"
           alt="Bearbells Logo"
-          width={120}
-          height={120}
+          width={100}
+          height={100}
           priority
-          className="drop-shadow-2xl filter brightness-110"
+          className="drop-shadow-2xl filter brightness-110 w-20 md:w-30"
         />
       </div>
       
       {/* Search Box */}
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         <StockSearchBox 
           onSelect={handleStockSearch} 
           textColor={currentTheme === "light" ? "text-black" : theme.textPrimary}
@@ -107,9 +107,9 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
 
       {/* Watchlist Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-3 md:px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <FaStar className={`w-4 h-4 ${theme.textAccent}`} />
+            <FaStar className={`w-3 h-3 md:w-4 md:h-4 ${theme.textAccent}`} />
             <span className={`text-xs ${theme.navTextColor} font-semibold tracking-wider uppercase`}>
               My Watchlist
             </span>
@@ -120,16 +120,16 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
         </div>
         
         {watchlistLoading ? (
-          <div className="px-4 py-12 text-center">
-            <div className={`inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${theme.textAccent} mb-4`}></div>
-            <p className={`text-sm ${theme.textSecondary}`}>Loading watchlist...</p>
+          <div className="px-3 md:px-4 py-8 md:py-12 text-center">
+            <div className={`inline-block animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-t-2 border-b-2 ${theme.textAccent} mb-3 md:mb-4`}></div>
+            <p className={`text-xs md:text-sm ${theme.textSecondary}`}>Loading watchlist...</p>
           </div>
         ) : watchlist.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${theme.cardBg} mb-4`}>
-              <FaStar className={`w-8 h-8 ${theme.textSecondary}`} />
+          <div className="px-3 md:px-4 py-8 md:py-12 text-center">
+            <div className={`inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full ${theme.cardBg} mb-3 md:mb-4`}>
+              <FaStar className={`w-6 h-6 md:w-8 md:h-8 ${theme.textSecondary}`} />
             </div>
-            <p className={`text-sm ${theme.textSecondary} mb-2`}>No stocks in watchlist</p>
+            <p className={`text-xs md:text-sm ${theme.textSecondary} mb-1.5 md:mb-2`}>No stocks in watchlist</p>
             <p className={`text-xs ${theme.textSecondary} opacity-75`}>Search and add stocks to track</p>
           </div>
         ) : (
@@ -145,25 +145,25 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
                   className="w-full group relative overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02]"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-r ${theme.textAccent}/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200`} />
-                  <div className={`relative px-4 py-3 ${theme.cardBg} backdrop-blur-sm border ${theme.cardBorder} group-hover:border-${theme.textAccent}/30 transition-all duration-200`}>
+                  <div className={`relative px-3 md:px-4 py-2.5 md:py-3 ${theme.cardBg} backdrop-blur-sm border ${theme.cardBorder} group-hover:border-${theme.textAccent}/30 transition-all duration-200`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className={`text-sm font-bold ${theme.textPrimary} truncate`}>
+                        <div className="flex items-center space-x-1.5 md:space-x-2 mb-1">
+                          <span className={`text-xs md:text-sm font-bold ${theme.textPrimary} truncate`}>
                             {stock.symbol}
                           </span>
                           {stock.sector && (
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-${theme.textAccent}/10 ${theme.textAccent} border border-${theme.textAccent}/20`}>
+                            <span className={`inline-flex items-center px-1 md:px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-medium bg-${theme.textAccent}/10 ${theme.textAccent} border border-${theme.textAccent}/20`}>
                               {stock.sector}
                             </span>
                           )}
                         </div>
-                        <p className={`text-xs ${theme.textSecondary} truncate mb-2`}>
+                        <p className={`text-[10px] md:text-xs ${theme.textSecondary} truncate mb-1.5 md:mb-2`}>
                           {stock.name}
                         </p>
                         <div className="flex items-center justify-between">
-                          <span className={`text-xs ${theme.textSecondary}`}>Price</span>
-                          <span className={`text-sm font-bold ${theme.textPrimary}`}>
+                          <span className={`text-[10px] md:text-xs ${theme.textSecondary}`}>Price</span>
+                          <span className={`text-xs md:text-sm font-bold ${theme.textPrimary}`}>
                             {formatPrice(stock.last_price)}
                           </span>
                         </div>
@@ -171,11 +171,11 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
                       
                       <button
                         onClick={(e) => handleRemoveFromWatchlist(stock.id.toString(), stock.symbol, e)}
-                        className="ml-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all duration-200"
+                        className="ml-2 p-1 md:p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all duration-200"
                         aria-label="Remove from watchlist"
                         title="Remove from watchlist"
                       >
-                        <FaTrash className="w-3 h-3 text-red-400" />
+                        <FaTrash className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-400" />
                       </button>
                     </div>
                   </div>
@@ -187,11 +187,11 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
       </div>
 
       {/* Footer */}
-      <div className={`p-4 border-t ${theme.navBorder} ${theme.buttonBg} backdrop-blur-sm`}>
-        <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className={`p-3 md:p-4 border-t ${theme.navBorder} ${theme.buttonBg} backdrop-blur-sm`}>
+        <div className="flex items-center justify-between text-[10px] md:text-xs text-slate-500">
           <span>Powered by Bearbells</span>
           <div className="flex items-center space-x-1">
-            <div className={`w-2 h-2 rounded-full ${theme.liveIndicator} animate-pulse`} />
+            <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${theme.liveIndicator} animate-pulse`} />
             <span className={theme.liveText}>Live</span>
           </div>
         </div>
@@ -199,7 +199,13 @@ export default function DashboardSidebar({ onStockSelect }: DashboardSidebarProp
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 4px;
+        }
+        
+        @media (min-width: 768px) {
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
