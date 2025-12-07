@@ -114,7 +114,9 @@ export default function AboutPage() {
                 className="drop-shadow-lg filter brightness-110"
               />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">Prithvi Manoj</h3>
+            <h3 className={`text-2xl font-bold ${
+    currentTheme === "light" ? "text-gray-700" : "text-white"
+  } mb-2`}>Prithvi Manoj</h3>
             <p className={`${theme.textAccent} font-medium mb-4`}>Founder & CEO</p>
             <p className={`${theme.textPrimary} leading-relaxed mb-6`}>
               Prithvi leads BearBells with a vision to democratize intelligent investing tools. 
